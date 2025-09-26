@@ -1,54 +1,51 @@
 <?php
-include "Form.php";
+    include "config.php";
+    include "database.php"; 
+    include "Form.php";
 
-// Koneksi database
-$host = "localhost";
-$user = "root";      // sesuaikan
-$pass = "";          // sesuaikan
-$db   = "coffe"; // sesuaikan
+    $error = "";
 
-$koneksi = new mysqli($host, $user, $pass, $db);
+    if ($_SERVER['REQUEST_METHOD'] == "POST") {
+        $nama_produk = isset($_POST['nama_produk']) ? trim($_POST['nama_produk']) : "";
+        $harga       = isset($_POST['harga']) ? trim($_POST['harga']) : "";
+        $kategori    = isset($_POST['kategori']) ? trim($_POST['kategori']) : "";
+        $ukuran      = isset($_POST['ukuran']) ? trim($_POST['ukuran']) : "";
+        $topping     = isset($_POST['topping']) ? implode(",", $_POST['topping']) : "";
+        $deskripsi   = isset($_POST['deskripsi']) ? trim($_POST['deskripsi']) : "";
 
-if ($koneksi->connect_error) {
-    die("Koneksi gagal: " . $koneksi->connect_error);
-}
+        // Validasi: semua field wajib kecuali deskripsi
+        if (empty($nama_produk) || empty($harga) || empty($kategori) || empty($ukuran) || empty($topping)) {
+            $error = "⚠️ Semua field wajib diisi kecuali Deskripsi!";
+        } else {
+            $sql = "INSERT INTO produk_coffee 
+                    (nama_produk, harga, kategori, ukuran, topping, deskripsi) 
+                    VALUES ('$nama_produk','$harga','$kategori','$ukuran','$topping','$deskripsi')";
+            if (!$koneksi->query($sql)) {
+                $error = "❌ Gagal menyimpan data: " . $koneksi->error;
+            }
+        }
+    }
 
-// --- Simpan data jika form disubmit ---
-if ($_SERVER['REQUEST_METHOD'] == "POST") {
-    $nama_produk = $_POST['nama_produk'];
-    $harga       = $_POST['harga'];
-    $kategori    = $_POST['kategori'];
-    $ukuran      = $_POST['ukuran'];
-    $topping     = isset($_POST['topping']) ? implode(",", $_POST['topping']) : "";
-    $deskripsi   = $_POST['deskripsi'];
-
-    $sql = "INSERT INTO produk_coffee 
-            (nama_produk, harga, kategori, ukuran, topping, deskripsi) 
-            VALUES ('$nama_produk','$harga','$kategori','$ukuran','$topping','$deskripsi')";
-    $koneksi->query($sql);
-}
-
-// --- Buat Form ---
-$form = new Form("Coffe.php", "Simpan Produk");
-$form->addText("nama_produk", "Nama Produk");
-$form->addText("harga", "Harga (Rp)");
-$form->addSelect("kategori", "Kategori", array(
-    "kopi_hitam" => "Kopi Hitam",
-    "espresso"   => "Espresso",
-    "latte"      => "Latte",
-    "cappuccino" => "Cappuccino"
-));
-$form->addRadio("ukuran", "Ukuran", array(
-    "S" => "Small",
-    "M" => "Medium",
-    "L" => "Large"
-));
-$form->addCheckbox("topping", "Topping", array(
-    "gula"   => "Gula",
-    "susu"   => "Susu",
-    "coklat" => "Coklat"
-));
-$form->addTextarea("deskripsi", "Deskripsi Produk");
+    $form = new Form("Coffe.php", "Simpan Produk");
+    $form->addText("nama_produk", "Nama Produk");
+    $form->addText("harga", "Harga (Rp)");
+    $form->addSelect("kategori", "Kategori", array(
+        "kopi_hitam" => "Kopi Hitam",
+        "espresso"   => "Espresso",
+        "latte"      => "Latte",
+        "cappuccino" => "Cappuccino"
+    ));
+    $form->addRadio("ukuran", "Ukuran", array(
+        "S" => "Small",
+        "M" => "Medium",
+        "L" => "Large"
+    ));
+    $form->addCheckbox("topping", "Topping", array(
+        "gula"   => "Gula",
+        "susu"   => "Susu",
+        "coklat" => "Coklat"
+    ));
+    $form->addTextarea("deskripsi", "Deskripsi Produk");
 ?>
 
 <!DOCTYPE html>
@@ -56,14 +53,22 @@ $form->addTextarea("deskripsi", "Deskripsi Produk");
 <head>
     <title>Manajemen Produk Coffee</title>
     <style>
-        table { border-collapse: collapse; width: 80%; margin-top: 20px; }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
         th, td { border: 1px solid #999; padding: 8px; text-align: left; }
         th { background-color: #f2f2f2; }
         form { margin-bottom: 20px; }
+        h2 { margin-top: 30px; }
+        .error { color: red; font-weight: bold; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <h2>Form Input Produk Coffee</h2>
+
+    <?php if (!empty($error)): ?>
+        <div class="error"><?= $error; ?></div>
+    <?php endif; ?>
+
     <?php $form->displayForm(); ?>
 
     <h2>Daftar Produk Coffee</h2>
@@ -78,7 +83,7 @@ $form->addTextarea("deskripsi", "Deskripsi Produk");
             <th>Deskripsi</th>
         </tr>
         <?php
-        $result = $koneksi->query("SELECT * FROM produk_coffee ORDER BY id DESC");
+        $result = $koneksi->query("SELECT * FROM produk_coffee ORDER BY id ASC"); // urut dari kecil ke besar
         if ($result->num_rows > 0) {
             while($row = $result->fetch_assoc()){
                 echo "<tr>
@@ -92,7 +97,7 @@ $form->addTextarea("deskripsi", "Deskripsi Produk");
                       </tr>";
             }
         } else {
-            echo "<tr><td colspan='7'>Belum ada data produk</td></tr>";
+            echo "<tr><td colspan='7' align='center'>Belum ada data produk</td></tr>";
         }
         ?>
     </table>
