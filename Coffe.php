@@ -13,15 +13,14 @@
         $topping     = isset($_POST['topping']) ? implode(",", $_POST['topping']) : "";
         $deskripsi   = isset($_POST['deskripsi']) ? trim($_POST['deskripsi']) : "";
 
-        // Validasi: semua field wajib kecuali deskripsi
         if (empty($nama_produk) || empty($harga) || empty($kategori) || empty($ukuran) || empty($topping)) {
-            $error = "⚠️ Semua field wajib diisi kecuali Deskripsi!";
+            $error = "Semua field wajib diisi kecuali Deskripsi!";
         } else {
             $sql = "INSERT INTO produk_coffee 
                     (nama_produk, harga, kategori, ukuran, topping, deskripsi) 
                     VALUES ('$nama_produk','$harga','$kategori','$ukuran','$topping','$deskripsi')";
             if (!$koneksi->query($sql)) {
-                $error = "❌ Gagal menyimpan data: " . $koneksi->error;
+                $error = "Gagal menyimpan data: " . $koneksi->error;
             }
         }
     }
@@ -83,7 +82,7 @@
             <th>Deskripsi</th>
         </tr>
         <?php
-        $result = $koneksi->query("SELECT * FROM produk_coffee ORDER BY id ASC"); // urut dari kecil ke besar
+        $result = $koneksi->query("SELECT * FROM produk_coffee ORDER BY id ASC");
         if ($result->num_rows > 0) {
             while($row = $result->fetch_assoc()){
                 echo "<tr>

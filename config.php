@@ -1,24 +1,17 @@
 <?php
-// Konfigurasi
-$host = "localhost";
-$user = "root";        // sesuaikan
-$pass = "";            // sesuaikan
-$db   = "coffee";   // nama database
+    $host = "localhost";
+    $user = "root";
+    $pass = "";
+    $db   = "coffee";
+    $koneksi = new mysqli($host, $user, $pass);
 
-// Koneksi awal tanpa pilih DB dulu
-$koneksi = new mysqli($host, $user, $pass);
+    if ($koneksi->connect_error) {
+        die("Koneksi gagal: " . $koneksi->connect_error);
+    }
+    $sql = "CREATE DATABASE IF NOT EXISTS $db";
+    if ($koneksi->query($sql) !== TRUE) {
+        die("Error membuat database: " . $koneksi->error);
+    }
 
-// Cek koneksi
-if ($koneksi->connect_error) {
-    die("Koneksi gagal: " . $koneksi->connect_error);
-}
-
-// Buat database jika belum ada
-$sql = "CREATE DATABASE IF NOT EXISTS $db";
-if ($koneksi->query($sql) !== TRUE) {
-    die("Error membuat database: " . $koneksi->error);
-}
-
-// Pilih database
-$koneksi->select_db($db);
+    $koneksi->select_db($db);
 ?>
